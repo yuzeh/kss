@@ -1,0 +1,21 @@
+kss - browser security via keystroke biometrics
+
+The main goal of this browser extension is to use keystroke data as a
+biometric to secure the user on a browser. In order to do this, the
+extension needs to collect some user data. The data that this extension
+collects are limited to and include:
+
+- keystroke data on websites
+- mouse click data on websites
+- time spent on websites
+
+This document is a loose recollection/specification about how keystrokes are
+extracted from a user's browsing.
+
+The main idea is that JavaScript is injected onto browser pages. The JavaScript
+loads a keylogger and extracts key press information for certain keys, sending
+the information to an outside server via XmlHttp. On Chrome, which has more lax
+cross-origin policies, it would be possible to send this information to an
+outside server, but for Firefox, it will be a little harder.
+
+
