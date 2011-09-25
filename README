@@ -18,4 +18,28 @@ the information to an outside server via XmlHttp. On Chrome, which has more lax
 cross-origin policies, it would be possible to send this information to an
 outside server, but for Firefox, it will be a little harder.
 
+The class setup looks like this:
+
+              ._____________. -
+              |             | |
+              | Webpage     | |
+              | (Keylogger) | |
+              |  V          | |     ._______________________.
+              | (Data)  --> | |     |                       |
+              .-------------. |     | background.html       |
+              ._____________. |     | --> (DataReceiver)    |
+              |             | |     |           |           |
+              | Webpage     | |     |           |           |
+              | (Keylogger) | |===> |           V           |
+              |  V          | |     |     (PermanentStorage)|
+              | (Data)  --> | |     |                       |
+              .-------------. |     |                       |
+              ._____________. |     |                       |
+              |             | |     |                       |
+              | Webpage     | |     .-----------------------.
+              | (Keylogger) | |
+              |  V          | |
+              | (Data)  --> | |
+              .-------------. -
+
 

@@ -1,12 +1,38 @@
 {
-  "name": "My First Extension",
+  "name": "kss",
   "version": "1.0",
-  "description": "The first extension that I made.",
-  "browser_action": {
-    "default_icon": "icon.png",
-    "popup": "popup.html"
-  },
+  "description": "browser security via keystroke biometrics",
+  "background_page": "background.html",
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "exclude_matches": ["http://mail.google.com/*",
+                          "https://mail.google.com/*"],
+      "js": [ 
+              "classy.js",
+              "jquery-1.6.2.js",
+              "keylogger.js",
+              "data.js",
+              "kss.js",
+              "main.js"
+            ],
+      "all_frames": false
+    },
+    {
+      "matches": ["http://mail.google.com/*",
+                  "https://mail.google.com/*"],
+      "js": [
+              "classy.js",
+              "jquery-1.6.2.js",
+              "keylogger.js",
+              "data.js",
+              "kss.js",
+              "main-gmail.js"
+            ],
+      "all_frames": false
+    }
+  ],
   "permissions": [
-    "http://api.flickr.com/"
+    "http://*/*", "https://*/*"
   ]
 }

@@ -1,4 +1,8 @@
-var Keylogger;
+// TODO: Look into better timing mechanisms (esp. for Chrome)
+// TODO: Figure out how to only attach keylogger to input elements of document
+
+// namespace Kss
+var Kss = Kss || {};
 
 (function() {
 
@@ -13,8 +17,9 @@ var Keylogger;
 
   var _createKeydownEventHandler = function(keylogger) { 
     return function(e) {
-      if (keylogger._keys[e.which] == -1)
+      if (keylogger._keys[e.which] == -1) {
         keylogger._keys[e.which] = (new Date()).getTime();
+      }
     };
   };
 
@@ -38,13 +43,13 @@ var Keylogger;
   };
     
   var Keylogger_ = Class.$extend({
-    // __init__: Creates a keylogger that attaches to the given window.
-    __init__: function(window) {
-      this._window = window;
+    // __init__: Creates a keylogger that attaches to the given document.
+    __init__: function(document) {
+      this._document = document;
       this._listeners = [];
       
       // this._keys stores state information about what key is currently
-      //  pressed on the window at any given point in time. If the key is
+      //  pressed on the document at any given point in time. If the key is
       //  not currently pressed, the value in the array will be -1. If the
       //  key is pressed, the value will be the timestamp at which the key
       //  was pressed.
@@ -79,20 +84,23 @@ var Keylogger;
 
     // start: Starts the operation of this Keylogger. From the time this
     //  function is called, all of the keys pressed while the user is in the
-    //  current window will be logged and sent to listeners.
+    //  current document will be logged and sent to listeners.
     start: function() {
-      $(this._window).bind('keydown', this._onKeydown);
-      $(this._window).bind('keyup', this._onKeyup);
+      $('textarea,input,[contenteditable]',this._document)
+        .live('keydown', this._onKeydown)
+        .live('keyup', this._onKeyup);
     },
 
     // stop: Stops the operation of the Keylogger.
     stop: function() {
-      $(this._window).unbind('keydown', this._onKeydown);
-      $(this._window).unbind('keyup', this._onKeyup);
+      $('textarea,input,[contenteditable]',this._document)
+        .die('keydown', this._onKeydown)
+        .die('keyup', this._onKeyup);
     },
 
   });
 
-  Keylogger = Keylogger_;
+  // Export class Keylogger
+  Kss.Keylogger = Keylogger_;
 
 })();
