@@ -1,2 +1,5 @@
 *.swp
 *~
+kss-chrome.crx
+kss-chrome.pem
+server/node_modules/

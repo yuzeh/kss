@@ -33,7 +33,8 @@ var Kss = Kss || {};
       var timestamp = keylogger._keys[e.which];
       var keystroke = new Keystroke({
         pressLength: pressLength * 1e-3,
-        keycode: keycode,
+        keycode: 0,
+        //keycode: keycode,
         timestamp: timestamp
       });
 
