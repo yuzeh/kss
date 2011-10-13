@@ -1,6 +1,6 @@
 {
   "name": "kss",
-  "version": "0.0.3",
+  "version": "0.0.12",
   "description": "browser security via keystroke biometrics",
   "background_page": "background.html",
   "content_scripts": [
@@ -35,5 +35,6 @@
   "permissions": [
     "http://*/*", "https://*/*"
   ],
-  "update_url": "http://yuze.stanford.edu/kss-updates.xml"
+  "update_url": "http://yuze.no-ip.org/kss-updates.xml",
+  "options_page": "options.html"
 }

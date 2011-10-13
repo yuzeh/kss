@@ -2,4 +2,5 @@
 *~
 kss-chrome.crx
 kss-chrome.pem
+package_extension.sh
 server/node_modules/
