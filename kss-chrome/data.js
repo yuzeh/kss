@@ -28,7 +28,7 @@ var Kss = Kss || {};
         'location' : location.host
       };
 
-      console.log(JSON.stringify(message, null, 2));
+      // console.log(JSON.stringify(message, null, 2));
 
       this._port.postMessage(message);
       this._queue = new Array(this.batchSize);

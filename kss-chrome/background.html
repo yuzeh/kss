@@ -1,2 +1,9 @@
 <script src='jquery-1.6.2.js'></script>
 <script src='data-browser.js'></script>
+<script src='options-backend.js'></script>
+<script>
+if (!localStorage['_first_time']) {
+  localStorage['_first_time'] = true;
+  chrome.tabs.create({'url':chrome.extension.getURL('options.html')});
+}
+</script>

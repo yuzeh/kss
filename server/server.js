@@ -4,7 +4,8 @@ var http = require('http'),
    redis = require('redis'),
   openid = require('openid'),
      url = require('url'),
- express = require('express');
+ express = require('express'),
+      fs = require('fs');
 
 var app = express.createServer();
 var client = redis.createClient();
@@ -16,7 +17,7 @@ var extensions = [new openid.UserInterface(),
                  })];
 
 var relyingParty = new openid.RelyingParty(
-  'http://yuze.no-ip.org:8081/oid_callback.html', // callback url
+  'http://yuze.no-ip.org/kss/oid_callback.html', // callback url
   null,  // Realm
   false, // Stateless
   false, // strict mode
@@ -30,8 +31,8 @@ function addUser(id, email) {
 }
 
 // Stores entries in redis db
-function storeEntries(multi, email, website, keystrokes) {
-  var listKey = email + ' ' + website;
+function storeEntries(multi, userid, website, keystrokes) {
+  var listKey = userid + ' ' + website;
 
   for (var i = 0; i < keystrokes.length; ++i) {
     var ks = keystrokes[i];
@@ -45,12 +46,12 @@ function getSingletonJSON(obj) {
 }
 
 app.configure(function() {
-  app.use(express.static(__dirname + '/static'));
+  app.use('/kss', express.static(__dirname + '/static'));
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 // OpenId initiate url
-app.get('/auth', function(req, res) {
+app.get('/kss/auth', function(req, res) {
   var parsedUrl = url.parse(req.url);
   var query = qs.parse(parsedUrl.query);
   var identifier = query.openid_identifier;
@@ -74,8 +75,8 @@ app.get('/auth', function(req, res) {
 });
 
 // OpenId verify url
-app.get('/verify', function(req, res) {
-  relyingParty.verifyAssertion(req, function(err, result) {
+app.get('/kss/verify', function(req, res) {
+  relyingParty.verifyAssertion(req, function (err, result) {
     res.writeHead(200);
     if (err) {
       res.end('{ error: 1 }');
@@ -96,41 +97,38 @@ app.get('/verify', function(req, res) {
   });
 });
 
-app.post('/', function (req, res) {
+app.post('/kss', function (req, res) {
   var body = '';
   req.on('data', function (data) {
     body += data;
   });
 
   req.on('end', function () {
-    var POST = qs.parse(body);
-    var post = JSON.parse(getSingletonJSON(POST));
-    var email = post.email;
+    console.log(body);
+    var post = JSON.parse(body);
+    var userid = post.userid;
     var payload = post.payload;
-
-    // If we haven't seen email before, add it to the list
-    if (email) {
-      client.sadd("emails", email.toLowerCase());
-    }
     
-    var multi = client.multi();
+    var isMember = client.sismember('users', userid, function (err, res) {
+      // if we haven't seen this user before, disregard this entry
+      if (res) {
+        var multi = client.multi();
 
-    // add all of the keystroke data
-    for (var i = 0; i < payload.length; ++i) {
-      var website = payload[i].location;
-      storeEntries(multi, email, website, payload[i].keystrokes);
-    }
+        // add all of the keystroke data
+        for (var i = 0; i < payload.length; ++i) {
+          var website = payload[i].location;
+          storeEntries(multi, userid, website, payload[i].keystrokes);
+        }
 
-    multi.exec();
-
-    // console.log(JSON.stringify(post, null, 2));
+        multi.exec();
+      }
+    });
+    
   });
 
   res.writeHead(200, {'Content-Type': 'text/plain'});
   res.end('Yay!\n');
 });
 
-app.listen(8081);
-
-console.log('Server running at http://yuze.no-ip.org:8081');
+app.listen(80);
 

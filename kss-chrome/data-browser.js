@@ -1,7 +1,7 @@
 // A dumb package that will relay messages from webpage to remote storage
 (function() {
 
-  var DATA_URL = 'http://yuze.no-ip.org:8081';
+  var DATA_URL = 'http://yuze.no-ip.org/kss';
   var MAX_TEMP = 5;
   var isSending = false;
 
@@ -9,15 +9,17 @@
  
   function sendDataToServer() {
     isSending = true;
+    
     var data = {
-      email: localStorage['email'],
+      userid: localStorage['userid'],
       payload: tempStorage
     };
+
     console.log(JSON.stringify(data, null, 2));
     var dataString = JSON.stringify(data);
 
     $.post(DATA_URL, dataString);
-    console.log(dataString);
+
     tempStorage = [];
     isSending = false;
   };
@@ -35,8 +37,9 @@
   };
 
   chrome.extension.onConnect.addListener(function(port) {
-    console.assert(port.name == "kss_data");
-    port.onMessage.addListener(receiveData);
+    if (port.name == "kss_data") {
+      port.onMessage.addListener(receiveData);
+    }
   });
   
 })();
