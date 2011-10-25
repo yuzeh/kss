@@ -6,7 +6,7 @@
   var isSending = false;
 
   var tempStorage = [];
- 
+
   function sendDataToServer() {
     isSending = true;
     
@@ -15,7 +15,7 @@
       payload: tempStorage
     };
 
-    console.log(JSON.stringify(data, null, 2));
+    localStorage['data-view'] = JSON.stringify(data, null, 2);
     var dataString = JSON.stringify(data);
 
     $.post(DATA_URL, dataString);

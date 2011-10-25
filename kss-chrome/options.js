@@ -22,3 +22,10 @@ $('#save-button').click(save_options);
 $('#google_oid').click(function(){
   openPopupWindow('google.com/accounts/o8/id');
 });
+
+chrome.extension.sendRequest({method: 'getDataView'}, function(response) {
+  if (response) {
+    $('#data-view').text(response);
+  }
+  prettyPrint();
+});

@@ -26,5 +26,12 @@
       });
     }
   });
+
+  chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+    if (request.method == "getDataView") {
+      if (localStorage['data-view']) sendResponse(localStorage['data-view']);
+      else sendResponse(null);
+    }
+  });
 })();
 

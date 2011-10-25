@@ -35,8 +35,10 @@
     },
     {
       "matches": ["http://yuze.no-ip.org/kss/options.html"],
+      "css": [ "google-prettyprint/prettify.css" ],
       "js": [
               "jquery-1.6.2.js",
+              "google-prettyprint/prettify.js",
               "options.js"
             ],
       "all_frames": false
