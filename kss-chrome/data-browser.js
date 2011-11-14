@@ -29,6 +29,7 @@
     if (isSending) {
       setTimeout(function(){ receiveData(msg); }, 500);
     } else {
+      msg.location = hex_md5(msg.location);
       tempStorage.push(msg);
       if (tempStorage.length > MAX_TEMP) {
         sendDataToServer();
