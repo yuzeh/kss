@@ -17,29 +17,34 @@ var Kss = Kss || {};
 
   var _createKeydownEventHandler = function(keylogger) { 
     return function(e) {
-      if (keylogger._keys[e.which] == -1) {
-        keylogger._keys[e.which] = (new Date()).getTime();
+      if (!keylogger._keys[e.which]) {
+        keylogger._keys[e.which] = {
+          time: (new Date()).getTime(),
+          isInputElement: $(e.srcElement).is('textarea,input,[contenteditable]')
+        };
       }
     };
   };
 
-  var _createKeyupEventHandler = function(keylogger) {
+  var _createKeyupEventHandler = function(keylogger, global) {
     return function(e) {
-      if (keylogger._keys[e.which] == -1) {
+      if (!keylogger._keys[e.which]) {
         throw new Error("Key not pressed!");
       }
-      var pressLength = (new Date()).getTime() - keylogger._keys[e.which];
+      var obj = keylogger._keys[e.which];
+      var pressLength = (new Date()).getTime() - obj.time;
       var keycode = e.which;
-      var timestamp = keylogger._keys[e.which];
+      var timestamp = obj.time;
+      var isInputElement = obj.isInputElement;
       var keystroke = new Keystroke({
+        isInputElement: isInputElement,
         pressLength: pressLength * 1e-3,
-        keycode: 0,
-        //keycode: keycode,
+        keycode: keycode,
         timestamp: timestamp
       });
 
       keylogger.notifyListeners(keystroke);
-      keylogger._keys[e.which] = -1;
+      keylogger._keys[e.which] = null;
     };
   };
     
@@ -87,16 +92,20 @@ var Kss = Kss || {};
     //  function is called, all of the keys pressed while the user is in the
     //  current document will be logged and sent to listeners.
     start: function() {
-      $('textarea,input,[contenteditable]',this._document)
-        .live('keydown', this._onKeydown)
-        .live('keyup', this._onKeyup);
+      $('body', this._document).bind('keydown', this._onKeydown)
+                               .bind('keyup', this._onKeyup);
+      //$('textarea,input,[contenteditable]',this._document)
+      //  .live('keydown', this._onKeydown)
+      //  .live('keyup', this._onKeyup);
     },
 
     // stop: Stops the operation of the Keylogger.
     stop: function() {
-      $('textarea,input,[contenteditable]',this._document)
-        .die('keydown', this._onKeydown)
-        .die('keyup', this._onKeyup);
+      $('body', this._document).unbind('keydown', this._onKeydown)
+                               .unbind('keyup', this._onKeyup);
+      //$('textarea,input,[contenteditable]',this._document)
+      //  .die('keydown', this._onKeydown)
+      //  .die('keyup', this._onKeyup);
     },
 
   });

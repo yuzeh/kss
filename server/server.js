@@ -36,7 +36,10 @@ function storeEntries(multi, userid, website, keystrokes) {
 
   for (var i = 0; i < keystrokes.length; ++i) {
     var ks = keystrokes[i];
-    multi.rpush(listKey, ks.timestamp + " " + ks.pressLength);
+    multi.rpush(listKey, ks.timestamp + " "
+                       + ks.pressLength + " "
+                       + ks.isInputElement + " "
+                       + ks.keycode);
   }
 }
 
@@ -81,7 +84,6 @@ app.get('/kss/verify', function(req, res) {
     if (err) {
       res.end('{ error: 1 }');
     } else {
-      // TODO: Store data returned into the server
       if (result.authenticated) {
         var userId = result.claimedIdentifier;
         var email = result.email;
