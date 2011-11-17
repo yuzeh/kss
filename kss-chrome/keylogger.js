@@ -6,15 +6,6 @@ var Kss = Kss || {};
 
 (function() {
 
-  var Keystroke = Class.$extend({
-    __init__: function(json) {
-      if (json) this.fromJSON(json);
-      else throw new Error("Properties required for Keystroke!");
-    },
-
-    __instancevars__: ['keycode', 'pressLength', 'timestamp']
-  });
-
   var _createKeydownEventHandler = function(keylogger) { 
     return function(e) {
       if (!keylogger._keys[e.which]) {
@@ -35,13 +26,12 @@ var Kss = Kss || {};
       var pressLength = (new Date()).getTime() - obj.time;
       var keycode = e.which;
       var timestamp = obj.time;
-      var isInputElement = obj.isInputElement;
-      var keystroke = new Keystroke({
-        isInputElement: isInputElement,
+      var keystroke = {
+        isInputElement: obj.isInputElement,
         pressLength: pressLength * 1e-3,
         keycode: keycode,
         timestamp: timestamp
-      });
+      };
 
       keylogger.notifyListeners(keystroke);
       keylogger._keys[e.which] = null;
@@ -60,7 +50,7 @@ var Kss = Kss || {};
       //  key is pressed, the value will be the timestamp at which the key
       //  was pressed.
       this._keys = new Array(256);
-      for (var i = 0; i < 256; ++i) this._keys[i] = -1;
+      for (var i = 0; i < 256; ++i) this._keys[i] = null;
 
       this._onKeydown = _createKeydownEventHandler(this);
       this._onKeyup = _createKeyupEventHandler(this);
@@ -68,7 +58,7 @@ var Kss = Kss || {};
 
     // attachListener: Attaches a listener to Keylogger.
     //  Listeners to this Keylogger are functions that take in one argument:
-    //  the Keystroke object representing the key pressed.
+    //  the keystroke object representing the key pressed.
     attachListener: function(listener) {
       this._listeners.push(listener);
     },
@@ -94,18 +84,12 @@ var Kss = Kss || {};
     start: function() {
       $('body', this._document).bind('keydown', this._onKeydown)
                                .bind('keyup', this._onKeyup);
-      //$('textarea,input,[contenteditable]',this._document)
-      //  .live('keydown', this._onKeydown)
-      //  .live('keyup', this._onKeyup);
     },
 
     // stop: Stops the operation of the Keylogger.
     stop: function() {
       $('body', this._document).unbind('keydown', this._onKeydown)
                                .unbind('keyup', this._onKeyup);
-      //$('textarea,input,[contenteditable]',this._document)
-      //  .die('keydown', this._onKeydown)
-      //  .die('keyup', this._onKeyup);
     },
 
   });

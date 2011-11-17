@@ -2,6 +2,17 @@
 var Kss = Kss || {};
 
 (function() {
+  
+  // One constant
+  var VALID_KEYCODES = [40,37,38,39,33,34,32,8,46,16,17,18,13];
+  
+  function isValidKeycode (k) {
+    for (var i = 0; i < VALID_KEYCODES.length; ++i) {
+      if (VALID_KEYCODES[i] == k) return true;
+    }
+    return false;
+  }
+
   var Data_ = Class.$extend({
     __init__: function(batchSize) {
       var this_ = this;
@@ -16,6 +27,11 @@ var Kss = Kss || {};
 
     // Queue a keystroke datapoint.
     queueKeystroke: function(keystroke) {
+      // Discard keycode when pressed in a input element
+      if (!isValidKeycode(keystroke.keycode)) {
+        keystroke.keycode = -1;
+      }
+
       this._queue[this._nDataPoints] = keystroke;
       ++(this._nDataPoints);
       if (this._nDataPoints >= this.batchSize) this.sendData();

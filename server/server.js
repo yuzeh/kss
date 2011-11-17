@@ -36,10 +36,7 @@ function storeEntries(multi, userid, website, keystrokes) {
 
   for (var i = 0; i < keystrokes.length; ++i) {
     var ks = keystrokes[i];
-    multi.rpush(listKey, ks.timestamp + " "
-                       + ks.pressLength + " "
-                       + ks.isInputElement + " "
-                       + ks.keycode);
+    multi.rpush(listKey, JSON.stringify(ks));
   }
 }
 
