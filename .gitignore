@@ -7,5 +7,3 @@ server/node_modules/
 server/yuze.no-ip.org.key
 server/yuze.no-ip.org.csr
 server/yuze.no-ip.org.crt
-server/static/extension/*
-server/start_server.sh

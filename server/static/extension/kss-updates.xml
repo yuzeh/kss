@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
+  <app appid='ighfjnmdkjciihabkchhgmopdoihkphb'>
+    <updatecheck codebase='http://yuze.stanford.edu/kss/extension/kss-0.1.4.crx' version='0.1.4' />
+  </app>
+</gupdate>
