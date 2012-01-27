@@ -8,7 +8,7 @@ var http = require('http'),
       fs = require('fs');
 
 var app = express.createServer();
-var client = redis.createClient();
+var client = redis.createClient(6379,'yuze.no-ip.org');
 
 var extensions = [new openid.UserInterface(),
                   new openid.AttributeExchange({
