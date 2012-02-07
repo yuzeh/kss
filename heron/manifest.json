@@ -1,7 +1,7 @@
 {
-  "name": "kss",
-  "version": "0.1.4",
-  "description": "browser security via keystroke biometrics",
+  "name": "Heron",
+  "version": "0.1.0",
+  "description": "Keystroke data collection",
   "background_page": "background.html",
   "content_scripts": [
     {
@@ -11,12 +11,12 @@
                           "http://yuze.no-ip.org/kss/options.html",
                           "http://yuze.no-ip.org/kss/oid_callback.html*"],
       "js": [ 
-              "classy.js",
-              "jquery-1.6.2.js",
-              "keylogger.js",
-              "data.js",
-              "kss.js",
-              "main.js"
+              "lib/classy.js",
+              "lib/jquery-1.6.2.js",
+              "js/keylogger.js",
+              "js/data.js",
+              "js/kss.js",
+              "js/main.js"
             ],
       "all_frames": false
     },
@@ -24,30 +24,30 @@
       "matches": ["http://mail.google.com/*",
                   "https://mail.google.com/*"],
       "js": [
-              "classy.js",
-              "jquery-1.6.2.js",
-              "keylogger.js",
-              "data.js",
-              "kss.js",
-              "main-gmail.js"
+              "lib/classy.js",
+              "lib/jquery-1.6.2.js",
+              "js/keylogger.js",
+              "js/data.js",
+              "js/kss.js",
+              "js/main-gmail.js"
             ],
       "all_frames": false
     },
     {
       "matches": ["http://yuze.no-ip.org/kss/options.html"],
-      "css": [ "google-prettyprint/prettify.css" ],
+      "css": [ "lib/google-prettyprint/prettify.css" ],
       "js": [
-              "jquery-1.6.2.js",
-              "google-prettyprint/prettify.js",
-              "options.js"
+              "lib/jquery-1.6.2.js",
+              "lib/google-prettyprint/prettify.js",
+              "js/options.js"
             ],
       "all_frames": false
     },
     {
       "matches": ["http://yuze.no-ip.org/kss/oid_callback.html*"],
       "js": [
-              "jquery-1.6.2.js",
-              "oid_callback.js"
+              "lib/jquery-1.6.2.js",
+              "js/oid_callback.js"
             ],
       "all_frames": false
     }

@@ -3,14 +3,9 @@ var Kss = Kss || {};
 
 (function() {
   
-  // One constant
-  var VALID_KEYCODES = [40,37,38,39,33,34,32,8,46,16,17,18,13];
-  
+  // This was a holdover from when I was anonymizing keystrokes
   function isValidKeycode (k) {
-    for (var i = 0; i < VALID_KEYCODES.length; ++i) {
-      if (VALID_KEYCODES[i] == k) return true;
-    }
-    return false;
+    return true;
   }
 
   var Data_ = Class.$extend({
@@ -27,7 +22,6 @@ var Kss = Kss || {};
 
     // Queue a keystroke datapoint.
     queueKeystroke: function(keystroke) {
-      // Discard keycode when pressed in a input element
       if (!isValidKeycode(keystroke.keycode)) {
         keystroke.keycode = -1;
       }
@@ -41,10 +35,9 @@ var Kss = Kss || {};
     sendData: function() {
       var message = { 
         'keystrokes' : this._queue,
-        'location' : location.host
+        'url': document.URL,
+        'domain' : location.host
       };
-
-      // console.log(JSON.stringify(message, null, 2));
 
       this._port.postMessage(message);
       this._queue = new Array(this.batchSize);

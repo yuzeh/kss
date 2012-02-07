@@ -84,6 +84,7 @@ var Kss = Kss || {};
     start: function() {
       $('body', this._document).bind('keydown', this._onKeydown)
                                .bind('keyup', this._onKeyup);
+
     },
 
     // stop: Stops the operation of the Keylogger.

@@ -1,10 +1,12 @@
-<script src='jquery-1.6.2.js'></script>
-<script src='jshash/md5-min.js'></script>
-<script src='data-browser.js'></script>
-<script src='options-backend.js'></script>
+<script src='lib/jquery-1.6.2.js'></script>
+<script src='lib/jshash/md5-min.js'></script>
+<script src='js/data-browser.js'></script>
+<script src='js/options-backend.js'></script>
 <script>
-if (!localStorage['_first_time']) {
-  localStorage['_first_time'] = true;
+// Check if it's the first time loading the page
+if (!localStorage['_HAS_LOADED']) {
+  localStorage['_HAS_LOADED'] = true;
+  localStorage['_LOG_COUNT'] = 0;
   chrome.tabs.create({'url':chrome.extension.getURL('options.html')});
 }
 </script>
