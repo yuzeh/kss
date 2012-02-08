@@ -1,12 +1,5 @@
 (function() {
 
-  // var SESSION_CUTOFF = 300000; // 5 minutes, in milliseconds
-  // var KEYSTROKE_CRITERIA = 30;
-  // var EVENT_CRITERIA = 30;
-  
-  var SESSION_CUTOFF = 10000; // 10 second sessions for debugging
-  var KEYSTROKE_CRITERIA = 10;
-  var EVENT_CRITERIA = 5;
 
   var get = Util.get;
   var set = Util.set;
@@ -14,16 +7,27 @@
 
   function checkForSessions() {
     var currentTime = (new Date()).getTime();
-    if (currentTime - get('tLastActivity') > SESSION_CUTOFF) {
+    if (currentTime - get('tLastActivity') > Kss.SESSION_CUTOFF) {
       // End current session
+
+      // Increment total time
+      var elapsedTime = (currentTime - get('tSessionStartTime')) / 1000;
+      inc('totalTime', elapsedTime);
+
+      // Check if this session is useable
+      var goodSession = get('tNumKeystrokes') >= Kss.KEYSTROKE_CRITERIA &&
+                        get('tNumEvents') >= Kss.EVENT_CRITERIA;
+      
+      // Increment session counter
       inc('numSessions');
-      var goodSession = get('tNumKeystrokes') >= KEYSTROKE_CRITERIA &&
-                        get('tNumEvents') >= EVENT_CRITERIA;
       if (goodSession) inc('numGoodSessions');
+     
+      // Log this data
       Util.storeData({
         'event' : 'sessionEnd',
         'timestamp' : currentTime,
-        'isGood' : goodSession
+        'isGood' : goodSession,
+        'time' : elapsedTime,
       });
 
       // Reset temporary session counters
@@ -36,17 +40,20 @@
     } else {
       // Set a timer to check whenever this the current lastActivity expires
       setTimeout(checkForSessions,
-        get('tLastActivity') + SESSION_CUTOFF - currentTime);
+        get('tLastActivity') + Kss.SESSION_CUTOFF - currentTime + 500);
     }
   }
 
   function startNewSessionListener(msg) {
     // If waiting for a new session, start the session.
     if (get('tWaitingForSession')) {
+      var time = (new Date()).getTime();
+      
       set('tWaitingForSession', 0);
+      set('tSessionStartTime', time);
       Util.storeData({
         'event' : 'sessionStart',
-        'timestamp' : (new Date()).getTime(),
+        'timestamp' : time,
       });
       checkForSessions();
     }
