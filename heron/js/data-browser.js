@@ -1,5 +1,14 @@
 // A dumb package that will relay messages from webpage to remote storage
 (function() {
+
+  // This is quite a bit of work just to hide one instance variable
+  var lock, unlock, isLocked;
+  (function() {
+    var a = false;
+    lock = function() { a = true; }
+    unlock = function() { a = false; }
+    isLocked = function() { return a; }
+  })();
   
   // Receives data, sends it off to a server for storage.
   // There is a browser-level lock on this function: only one instance
@@ -7,14 +16,13 @@
   function createReceiveDataListener(port) {
     var receiveData = function(msg) {
       if (msg.event != 'keystrokes') return;
-      if (Util.isLocked()) {
-        setTimeout(function(){ receiveData(msg); }, 500);
+      if (isLocked()) {
+        setTimeout(function(){ receiveData(msg); }, 250);
       } else {
-        Util.lock();
+        lock();
         Util.storeData(msg);
-        localStorage['data-view'] = JSON.stringify(msg, null, 2);
         port.postMessage({ success : 1 });
-        Util.unlock();
+        unlock();
       }
     };
 

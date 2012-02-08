@@ -1,5 +1,5 @@
 // namespace Kss
-var Kss = Kss || {};
+var Kss = Kss || { };
 
 (function() {
   
