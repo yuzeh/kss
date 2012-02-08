@@ -6,7 +6,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "exclude_matches": ["http://mail.google.com/*",
+      "exclude_globs": ["http://mail.google.com/*",
                           "https://mail.google.com/*",
                           "http://yuze.no-ip.org/kss/options.html",
                           "http://yuze.no-ip.org/kss/oid_callback.html*"],
@@ -53,7 +53,7 @@
     }
   ],
   "permissions": [
-    "http://*/*", "https://*/*"
+    "tabs", "http://*/*", "https://*/*"
   ],
   "update_url": "http://yuze.no-ip.org/kss/extension/kss-updates.xml",
   "options_page": "options.html"

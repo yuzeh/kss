@@ -1,4 +1,4 @@
 // Config file for Kss namespace
 var Kss = Kss || { };
 
-Kss.BATCH_SIZE = 10;
+Kss.PAGE_TO_BROWSER_INTERVAL = 5000;
