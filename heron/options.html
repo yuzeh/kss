@@ -1,12 +1,60 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Refresh"
-      content="0;url=http://yuze.no-ip.org/kss/options.html"
-/>
+<title>heron dashboard</title>
+<link rel="stylesheet" href="lib/bootstrap.min.css">
+<script type="text/javascript"
+  src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js">
+</script>
+<script type="text/javascript" src="js/util.js"></script>
+<script type="text/javascript" src="js/options2.js"></script>
 </head>
 <body>
-The options page is at
-<a href="http://yuze.no-ip.org/kss/options.html">
-http://yuze.no-ip.org/kss/options.html</a>.
+<div class="container">
+<div class="span12">
+  <div id="header">
+  <h1>heron - data collection for browser security</h1>
+  </div>
+  <form class="form-horizontal">
+  <fieldset>
+    <legend>Dashboard</legend>
+    <div class="control-group">
+      <label class="control-label" for="heron_id">Heron ID</label>
+      <div class="controls">
+        <span id="heron_id" type="text" class="uneditable-input span4"></span>
+        <p class="help-block">
+          Go to <a href='about:blank'>http://mturk.com</a> and give us this
+          string for your $0.25 payout.
+        </p>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="completion_progress">Progress</label>
+      <div class="controls">
+        <div class="progress">
+          <div id="completion_progress" class="bar"
+            style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="control-group">
+      <label class="control-label" for="openid">Data Export</label>
+      <div class="controls">
+        <input id="task_2" type="button"
+          value="Download Data" class="btn">
+        <p id='done_msg' class="help-block" style='visibility: hidden;'>
+          Click on the button above, save the file, and then upload the file 
+          <a href='about:blank'>here</a>. If we verify that you have done
+          enough work, you will receive the $10 payout for this task.
+        </p>
+      </div>
+    </div>
+  </fieldset>
+  </form>
+  <div>
+    <span><p>This is a view of what is being sent to the server:</p></span>
+    <pre class="prettyprint lang-js" id="data-view">// Nothing has been sent yet!</pre>
+  </div>
+</div>
+</div>
 </body></html>

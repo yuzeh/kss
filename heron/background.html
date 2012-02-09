@@ -5,10 +5,14 @@
 <script src='js/util.js'></script>
 <script src='js/data-browser.js'></script>
 <script src='js/session.js'></script>
+<script src='js/criteria.js'></script>
 <script src='js/options-backend.js'></script>
 <script>
 // Check if it's the first time loading the page
 if (!localStorage['hasLoaded']) {
+  // User identified variables
+  localStorage['uid'] = hex_md5(Math.random());
+
   // Some permanent variables
   localStorage['hasLoaded'] = 1;
   localStorage['logCount'] = 0;
@@ -19,6 +23,8 @@ if (!localStorage['hasLoaded']) {
   localStorage['numDomains'] = 0;
   localStorage['totalTime'] = 0; // in seconds
   localStorage['progress'] = 0;
+  localStorage['completionPageHasFired'] = 0;
+  localStorage['hasNotifiedServerOfCompletion'] = 0;
   
   // Some temporary variables
   localStorage['tLastActivity'] = (new Date()).getTime();

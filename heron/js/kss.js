@@ -14,7 +14,7 @@ Kss.PAGE_TO_BROWSER_INTERVAL = 5000;
 // };
 
 Kss.SESSION_CUTOFF = 10000; // 10 second sessions for debugging
-Kss.KEYSTROKE_CRITERIA = 10;
+Kss.KEYSTROKE_CRITERIA = 5;
 Kss.EVENT_CRITERIA = 5;
 
 Kss.CRITERIA = {

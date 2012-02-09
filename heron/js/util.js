@@ -2,9 +2,7 @@ var Util = Util || {};
 
 (function() {
  
-  // Constants
-  var SALT = 'AI Lab';
-
+  // Internal utility method
   function _removeFromArray(a,b) {
     var index = a.indexOf(b);
     if (index != -1) a.splice(index,1);
@@ -41,6 +39,7 @@ var Util = Util || {};
   // END: localStorage modification module
 
   // Stores the event, and a hash of the event for verification
+  var SALT = 'AI Lab';
   function storeData(msg) {
     localStorage['data-view'] = JSON.stringify(msg, null, 2);
     
