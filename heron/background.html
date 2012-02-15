@@ -8,10 +8,19 @@
 <script src='js/criteria.js'></script>
 <script src='js/options-backend.js'></script>
 <script>
+var GET_UID_URL = 'https://ai.stanford.edu/~yuze/heron/new_user.php';
+function getUidAndPassword() {
+  $.post(GET_UID_URL, {}, function(data, textStatus, jqXhr) {
+    var d = JSON.parse(data);
+    localStorage['uid'] = d.uid;
+    localStorage['upw'] = d.upw;
+  });
+}
+
 // Check if it's the first time loading the page
 if (!localStorage['hasLoaded']) {
   // User identified variables
-  localStorage['uid'] = hex_md5(Math.random());
+  getUidAndPassword();
 
   // Some permanent variables
   localStorage['hasLoaded'] = 1;

@@ -6,6 +6,8 @@
 <script type="text/javascript"
   src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js">
 </script>
+<script type="text/javascript" src="lib/FileSaver.js"></script>
+<script type="text/javascript" src="lib/BlobBuilder.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/options2.js"></script>
 </head>
@@ -45,7 +47,7 @@
         <p id='done_msg' class="help-block" style='visibility: hidden;'>
           Click on the button above, save the file, and then upload the file 
           <a href='about:blank'>here</a>. If we verify that you have done
-          enough work, you will receive the $10 payout for this task.
+          enough internet use, you will receive the $10 payout for this task.
         </p>
       </div>
     </div>
@@ -53,7 +55,8 @@
   </form>
   <div>
     <span><p>This is a view of what is being sent to the server:</p></span>
-    <pre class="prettyprint lang-js" id="data-view">// Nothing has been sent yet!</pre>
+    <pre class="prettyprint lang-js" id="data-view">
+    // Nothing has been sent yet!</pre>
   </div>
 </div>
 </div>
