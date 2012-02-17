@@ -1,10 +1,12 @@
 (function() {
 
-
+  // Poor man's imports
   var get = Util.get;
   var set = Util.set;
   var inc = Util.inc;
 
+  // At the end of a session, this function checks for many properties of a
+  // user session.
   function checkForSessions() {
     var currentTime = (new Date()).getTime();
     if (currentTime - get('tLastActivity') > Kss.SESSION_CUTOFF) {

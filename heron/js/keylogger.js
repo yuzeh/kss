@@ -1,5 +1,4 @@
 // TODO: Look into better timing mechanisms (esp. for Chrome)
-// TODO: Figure out how to only attach keylogger to input elements of document
 
 // namespace Kss
 var Kss = Kss || {};
