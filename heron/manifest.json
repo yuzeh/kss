@@ -1,6 +1,6 @@
 {
   "name": "Heron",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Keystroke data collection",
   "background_page": "background.html",
   "content_scripts": [
@@ -55,6 +55,6 @@
   "permissions": [
     "tabs", "http://*/*", "https://*/*"
   ],
-  "update_url": "http://yuze.no-ip.org/kss/extension/kss-updates.xml",
+  "update_url": "https://ai.stanford.edu/~yuze/heron/updates.xml",
   "options_page": "options.html"
 }
