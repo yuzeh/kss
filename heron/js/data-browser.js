@@ -57,6 +57,14 @@
     });
   });
 
+  chrome.tabs.onCreated.addListener(function(tab) {
+    Util.storeData({
+      'event' : 'tabCreated',
+      'isActive' : tab.active,
+      'timestamp' : (new Date()).getTime()
+    });
+  });
+
   chrome.extension.onConnect.addListener(function(port) {
     if (port.name == "heron-data") {
       port.onMessage.addListener(createReceiveDataListener(port));

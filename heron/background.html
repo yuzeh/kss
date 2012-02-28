@@ -17,7 +17,7 @@ function getUidAndPassword() {
   });
 }
 
-var CURRENT_VERSION = '0.1.1';
+var CURRENT_VERSION = '1.0.1';
 
 // Check if it's the first time loading the page
 if (localStorage['version'] != CURRENT_VERSION) {
@@ -36,6 +36,7 @@ if (localStorage['version'] != CURRENT_VERSION) {
   localStorage['progress'] = localStorage['progress'] || 0;
   localStorage['completionPageHasFired'] = 0;
   localStorage['hasNotifiedServerOfCompletion'] = 0;
+  localStorage['hasLoadedRestartMessage'] = 0;
   
   // Some temporary variables
   localStorage['tLastActivity'] = (new Date()).getTime();
@@ -43,6 +44,13 @@ if (localStorage['version'] != CURRENT_VERSION) {
   localStorage['tNumEvents'] = 0;
   localStorage['tWaitingForSession'] = 1;
   localStorage['tSessionStartTime'] = 0;
+  
+  // TODO: Fix this code to be able to handle a server failure
   chrome.tabs.create({'url':chrome.extension.getURL('options.html')});
+} else {
+  if (!Util.get('tWaitingForSession')) {
+    // Stop current session, start a new one
+    Util.checkForSessions();
+  }
 }
 </script>

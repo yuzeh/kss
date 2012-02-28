@@ -1,6 +1,6 @@
 {
   "name": "Heron",
-  "version": "0.1.1",
+  "version": "1.0.1",
   "description": "Keystroke data collection",
   "background_page": "background.html",
   "content_scripts": [

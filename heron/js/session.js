@@ -27,7 +27,7 @@
       // Log this data
       Util.storeData({
         'event' : 'sessionEnd',
-        'timestamp' : currentTime,
+        'timestamp' : get('tLastActivity'),
         'isGood' : goodSession,
         'time' : elapsed,
       });
@@ -60,5 +60,5 @@
   }
 
   Util.addStoreDataListener(startNewSessionListener);
-
+  Util.checkForSessions = checkForSessions;
 })();

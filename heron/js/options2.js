@@ -34,10 +34,14 @@
   }
 
   $(function() {
+    if (get('hasLoadedRestartMessage')) $('.alert').alert('close');
+    else set('hasLoadedRestartMessage', 1);
+
     var progress = Math.floor(get('progress'));
     $('#task_2').click(createTextFileDumpOfData);
     $('#heron_id').text(localStorage['uid']);
     $('#completion_progress').css('width', '' + progress + '%');
+
     if (progress == 100) {
       $('#done_msg').css('visibility','');
       notifyServerOfCompletion();

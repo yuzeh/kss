@@ -3,11 +3,10 @@
 <head>
 <title>heron dashboard</title>
 <link rel="stylesheet" href="lib/bootstrap.min.css">
-<script type="text/javascript"
-  src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js">
-</script>
+<script type="text/javascript" src="lib/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="lib/FileSaver.js"></script>
 <script type="text/javascript" src="lib/BlobBuilder.js"></script>
+<script type="text/javascript" src="lib/bootstrap-alert.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
 <script type="text/javascript" src="js/options2.js"></script>
 </head>
@@ -20,13 +19,21 @@
   <form class="form-horizontal">
   <fieldset>
     <legend>Dashboard</legend>
+    <div class="alert alert-success alert-block">
+      <a class="close" data-dismiss="alert" href="#">&times;</a>
+      <h4 class="alert-heading">Extension installed!</h4>
+        Please restart your browser, otherwise you will not receive
+          credit for task completion. <strong>BUT</strong> complete the task
+          first (look below).
+    </div>
     <div class="control-group">
       <label class="control-label" for="heron_id">Heron ID</label>
       <div class="controls">
         <span id="heron_id" type="text" class="uneditable-input span4"></span>
         <p class="help-block">
-          Go to <a href='about:blank'>http://mturk.com</a> and give us this
-          string for your $0.25 payout.
+          Go to <a href='about:blank'>http://mturk.com</a> and give us the
+          above ID for your first task payout. You do not need to type it out;
+          copying and pasting the ID is fine.
         </p>
       </div>
     </div>
@@ -45,18 +52,34 @@
         <input id="task_2" type="button"
           value="Download Data" class="btn">
         <p id='done_msg' class="help-block" style='visibility: hidden;'>
-          Click on the button above, save the file, and then upload the file 
-          <a href='about:blank'>here</a>. If we verify that you have done
-          enough internet use, you will receive the $10 payout for this task.
+          You should be receiving an invitation to complete the second AMT task
+          within 24 hours. Once you have received the invitation,
+          click on the button above, save the file, and then upload the file 
+          <a href='about:blank'>here</a>. If we verify that you have browsed
+          for the time agreed upon, you will be paid for the second task.
         </p>
       </div>
     </div>
   </fieldset>
   </form>
   <div>
-    <span><p>This is a view of what is being sent to the server:</p></span>
-    <pre class="prettyprint lang-js" id="data-view">
-    // Nothing has been sent yet!</pre>
+  <span><p>NOTE: This task will collect *all* browsing and typing within chrome
+  for the duration of the extension's install. The data is transmitted securely
+  to our servers, and we will never share your data with anyone. However, you
+  should refrain from highly sensitive browsing (e.g. banking) while collecting
+  data with the plugin, as that exposes both you and us to unnecessary risk.
+  </p></span>
+
+  <span><p>If you do not wish to complete the task you can uninstall the
+  extension at any time, though this forfeits your ability to complete the
+  second task. Data is only sent to our server when you upload it, meaning
+  there is no risk of your data being shared until you choose to share it with
+  us.</p></span>
+
+  <span><p>Note that to avoid accidentally sharing sensitive data while using
+  this extension you can use Chrome's 'Incognito mode' to browse in a window
+  with the extension not running. This protects your browsing, but does not
+  count towards task completion.</p></span>
   </div>
 </div>
 </div>

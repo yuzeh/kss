@@ -4,14 +4,14 @@ var Kss = Kss || { };
 Kss.PAGE_TO_BROWSER_INTERVAL = 5000;
 
 // Pilot study
-Kss.SESSION_CUTOFF = 30000; // 5 minutes, in milliseconds
+Kss.SESSION_CUTOFF = 30000; // 30 seconds, in milliseconds
 Kss.KEYSTROKE_CRITERIA = 30;
 Kss.EVENT_CRITERIA = 30;
 Kss.CRITERIA = {
 //  'numGoodSessions' : 40,
 //  'numUrls' : 100,
 //  'numDomains' : 10,
-  'totalTime' : 1 * 60, // 10 hours
+  'totalTime' : 5 * 60 * 60, // 5 hours
 };
 
 // Kss.SESSION_CUTOFF = 300000; // 5 minutes, in milliseconds
