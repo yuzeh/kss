@@ -13,8 +13,8 @@
       // End current session
 
       // Increment total time
-      var elapsedTime = (currentTime - get('tSessionStartTime')) / 1000;
-      inc('totalTime', elapsedTime);
+      var elapsed = (get('tLastActivity') - get('tSessionStartTime')) / 1000;
+      inc('totalTime', elapsed);
 
       // Check if this session is useable
       var goodSession = get('tNumKeystrokes') >= Kss.KEYSTROKE_CRITERIA &&
@@ -29,7 +29,7 @@
         'event' : 'sessionEnd',
         'timestamp' : currentTime,
         'isGood' : goodSession,
-        'time' : elapsedTime,
+        'time' : elapsed,
       });
 
       // Reset temporary session counters
@@ -49,16 +49,14 @@
   function startNewSessionListener(msg) {
     // If waiting for a new session, start the session.
     if (get('tWaitingForSession')) {
-      var time = (new Date()).getTime();
-      
       set('tWaitingForSession', 0);
-      set('tSessionStartTime', time);
+      set('tSessionStartTime', msg.timestamp);
       Util.storeData({
         'event' : 'sessionStart',
-        'timestamp' : time,
+        'timestamp' : msg.timestamp,
       });
       checkForSessions();
-    }
+    } 
   }
 
   Util.addStoreDataListener(startNewSessionListener);

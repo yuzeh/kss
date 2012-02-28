@@ -17,21 +17,23 @@ function getUidAndPassword() {
   });
 }
 
+var CURRENT_VERSION = '0.1.1';
+
 // Check if it's the first time loading the page
-if (!localStorage['hasLoaded']) {
+if (localStorage['version'] != CURRENT_VERSION) {
   // User identified variables
   getUidAndPassword();
 
   // Some permanent variables
-  localStorage['hasLoaded'] = 1;
-  localStorage['logCount'] = 0;
-  localStorage['numSessions'] = 0;
-  localStorage['numGoodSessions'] = 0;
-  localStorage['numKeystrokes'] = 0;
-  localStorage['numUrls'] = 0;
-  localStorage['numDomains'] = 0;
-  localStorage['totalTime'] = 0; // in seconds
-  localStorage['progress'] = 0;
+  localStorage['version'] = CURRENT_VERSION;
+  localStorage['logCount'] = localStorage['logCount'] || 0;
+  localStorage['numSessions'] = localStorage['numSessions'] || 0;
+  localStorage['numGoodSessions'] = localStorage['numGoodSessions'] || 0;
+  localStorage['numKeystrokes'] = localStorage['numKeystrokes'] || 0;
+  localStorage['numUrls'] = localStorage['numUrls'] || 0;
+  localStorage['numDomains'] = localStorage['numDomains'] || 0;
+  localStorage['totalTime'] = localStorage['totalTime'] || 0; // in seconds
+  localStorage['progress'] = localStorage['progress'] || 0;
   localStorage['completionPageHasFired'] = 0;
   localStorage['hasNotifiedServerOfCompletion'] = 0;
   
