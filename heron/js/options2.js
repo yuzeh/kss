@@ -13,6 +13,10 @@
       $.post(COMPLETION_URL, dat, function(data, tS, jqXhr) {
         console.log(data);
         if (data != "success\n") { // TODO handle error
+          console.log('Error!');
+          console.log(data);
+          console.log(tS);
+          console.log(jqXhr);
         } else {
           set('hasNotifiedServerOfCompletion', 1);
         }
