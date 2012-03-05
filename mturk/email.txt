@@ -1,0 +1,13 @@
+Hello,
+
+You have qualified for part 2 of the "Collecting web browsing data on Google
+Chrome" task. The link for that HIT is here:
+
+https://www.mturk.com/mturk/preview?groupId=2YEXHVKCJ011ULO6610KXW61CTB869
+
+Please upload the file you downloaded from the the options page of the Heron
+extension. It contains your browsing activity. If you were actively browsing
+for at least five hours, you can expect to receive the reward to the linked
+HIT in 24 hours.
+
+Cheers!
