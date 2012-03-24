@@ -1,5 +1,6 @@
 *.swp
 *~
+*.pyc
 kss-chrome.crx
 kss-chrome.pem
 package_extension.sh
@@ -8,3 +9,5 @@ server/yuze.no-ip.org.key
 server/yuze.no-ip.org.csr
 server/yuze.no-ip.org.crt
 mturk/settings.*
+mturk/data/*
+mturk/plots/*
