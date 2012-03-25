@@ -48,7 +48,7 @@ if __name__ == '__main__':
   keystrokePLs_key = defaultdict(list)
   keystrokePLs_domain = defaultdict(list)
   keystrokeFreqs = [0] * 250
-  
+
   sessionLengths = []
   keystrokesPressedPerSession = []
   timeSpentPressingKeys = []
