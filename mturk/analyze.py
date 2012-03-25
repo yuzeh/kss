@@ -10,7 +10,6 @@ import os.path
 import numpy as np
 from scipy.stats import scoreatpercentile
 import matplotlib
-matplotlib.use('cairo.pdf')
 import matplotlib.pylab as plt
 
 def IQR(data):
@@ -25,12 +24,14 @@ def createHistogram(title, xlabel, data, bins, filename):
   else:
     bins = math.floor((max(data) - min(data)) / width * 1.1)
 
-  plt.figure()
+  fig = plt.figure(1)
+  plt.cla()
   plt.title(title)
   plt.xlabel(xlabel)
   plt.hist(data, bins=bins)
-  plt.savefig(filename)
-  plt.close()
+  fig.savefig(filename)
+  fig.clf()
+  plt.close(fig)
 
 parser = argparse.ArgumentParser(description='Looks at AMT gathered data')
 parser.add_argument('infile', type=argparse.FileType('r'))
@@ -38,10 +39,10 @@ parser.add_argument('outdir')
 
 if __name__ == '__main__':
   args = parser.parse_args()
-  
+
   userName = os.path.split(args.infile.name)[1].split('.')[0]
   if args.outdir[-1] == '/': args.outdir = args.outdir[:-1]
-  
+
   # initialize all the container vars
   keystrokePLs = []
   keystrokePLs_key = defaultdict(list)
@@ -57,6 +58,9 @@ if __name__ == '__main__':
   #websiteVisitLength_domain = defaultdict(list) # same here
   wordLengths = []
   wordDurations = []
+
+  # Bigram model stuff
+  bigramModel = [ [[] for i in range(225)] for j in range(225) ]
 
   # go through the segmented data and the non segmented data
   stream = openJsonStream(args.infile)
@@ -78,11 +82,18 @@ if __name__ == '__main__':
       domains.add(page.url)
       keystrokesPressed += len(page.keystrokes)
 
+      previousKey = None
       for keystroke in page.keystrokes:
-        keystrokePLs.append(keystroke.pressLength)
-        keystrokePLs_key[keystroke.keycode].append(keystroke.pressLength)
-        keystrokePLs_domain[domain].append(keystroke.pressLength)
-        keystrokeFreqs[keystroke.keycode] += 1
+        pl = keystroke.pressLength
+        kc = keystroke.keycode
+        keystrokePLs.append(pl)
+        keystrokePLs_key[kc].append(pl)
+        keystrokePLs_domain[domain].append(pl)
+        keystrokeFreqs[kc] += 1
+
+        if previousKey is not None:
+          bigramModel[previousKey][kc].append(pl)
+        previousKey = kc
 
         timeSpent += keystroke.pressLength
 
