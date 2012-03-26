@@ -1,5 +1,6 @@
 #!/usr/bin/env python2.7
 from util import Object, openJsonStream, segmentJsonStream
+from keycodes import KEYCODES
 
 import argparse
 import math
@@ -15,7 +16,7 @@ import matplotlib.pylab as plt
 def IQR(data):
   return scoreatpercentile(data,75) - scoreatpercentile(data,25)
 
-def createHistogram(title, xlabel, data, bins, filename):
+def createHistogram(title, xlabel, data, filename):
   if len(data) == 0: return
   # Testing IQR thingy
   width = 2.0 * IQR(data) / (len(data)**(1.0/3.0))
@@ -23,25 +24,32 @@ def createHistogram(title, xlabel, data, bins, filename):
     bins = 20
   else:
     bins = math.floor((max(data) - min(data)) / width * 1.1)
-
-  fig = plt.figure(1)
-  plt.cla()
+  plt.figure()
   plt.title(title)
   plt.xlabel(xlabel)
   plt.hist(data, bins=bins)
-  fig.savefig(filename)
-  fig.clf()
-  plt.close(fig)
+  plt.savefig(filename)
+  plt.clf()
+  plt.close()
 
-parser = argparse.ArgumentParser(description='Looks at AMT gathered data')
-parser.add_argument('infile', type=argparse.FileType('r'))
-parser.add_argument('outdir')
+def createMultiHistograms(title, xlabel, fname, data, users):
+  d = np.concatenate(data)
+  width = 2.0 * IQR(d) / (len(d) ** (1/3.0))
+  if width == 0.0:
+    bins = 20
+  else:
+    bins = math.floor((max(d) - min(d)) / width * 1.1)
+  plt.figure()
+  plt.title(title)
+  plt.xlabel(xlabel)
+  plt.hist(data, bins=bins, label=users)
+  plt.savefig(fname)
+  plt.clf()
+  plt.close()
 
-if __name__ == '__main__':
-  args = parser.parse_args()
-
+def collectData(infile):
+  data = Object()
   userName = os.path.split(args.infile.name)[1].split('.')[0]
-  if args.outdir[-1] == '/': args.outdir = args.outdir[:-1]
 
   # initialize all the container vars
   keystrokePLs = []
@@ -54,22 +62,22 @@ if __name__ == '__main__':
   timeSpentPressingKeys = []
   websitesVisitedPerSession = []
   domainsVisitedPerSession = []
-  #websiteVisitLength = [] # can't currently get this one
-  #websiteVisitLength_domain = defaultdict(list) # same here
-  wordLengths = []
-  wordDurations = []
+  websiteVisitLength = [] # can't currently get this one
+  websiteVisitLength_domain = defaultdict(list) # same here
+  wordLengths = [] # TODO implement
+  wordDurations = [] # TODO implement
 
   # Bigram model stuff
-  bigramModel = [ [[] for i in range(225)] for j in range(225) ]
+  bigramModel = defaultdict(lambda: defaultdict(list))
 
-  # go through the segmented data and the non segmented data
+  # go through the segmented data (this is just a lot of code)
   stream = openJsonStream(args.infile)
   sessions = segmentJsonStream(stream)
 
   for session in sessions:
     keystrokesPressed = 0
     timeSpent = 0.0
-    domains = set() 
+    domains = set()
     websites = set()
     for page in session.data:
       if page.url is None:
@@ -77,23 +85,30 @@ if __name__ == '__main__':
         page.url = '*'
       else:
         domain = urlparse(page.url).netloc
-      
       websites.add(page.url)
       domains.add(page.url)
       keystrokesPressed += len(page.keystrokes)
 
-      previousKey = None
+      page.keystrokes.sort(key=lambda x: x.timestamp)
+      pKey = None
+      pStart = 0
+      pEnd = 0
       for keystroke in page.keystrokes:
         pl = keystroke.pressLength
         kc = keystroke.keycode
+        start = keystroke.timestamp / 1000.0
+        end = start + pl
+
         keystrokePLs.append(pl)
         keystrokePLs_key[kc].append(pl)
         keystrokePLs_domain[domain].append(pl)
         keystrokeFreqs[kc] += 1
 
-        if previousKey is not None:
-          bigramModel[previousKey][kc].append(pl)
-        previousKey = kc
+        if pKey is not None:
+          bigramModel[pKey][kc].append((end-pStart, start-pEnd, start-pStart))
+        pKey = kc
+        pStart = start
+        pEnd = end
 
         timeSpent += keystroke.pressLength
 
@@ -103,80 +118,130 @@ if __name__ == '__main__':
       timeSpentPressingKeys.append(timeSpent / float(session.time))
     websitesVisitedPerSession.append(len(websites))
     domainsVisitedPerSession.append(len(domains))
-  # TODO: finish
 
-  # convert everything to numpy arrays
-  keystrokePLs = np.array(keystrokePLs)
+  # store them all in data.
+  data.keystrokePLs = np.array(keystrokePLs)
+  data.keystrokePLs_key = dict(
+     (k,np.array(v)) for (k,v) in keystrokePLs_key.iteritems())
+  data.keystrokePLs_domain = dict(
+     (k,np.array(v)) for (k,v) in keystrokePLs_domain.iteritems())
+  data.keystrokeFreqs = np.array(keystrokeFreqs)
+  data.sessionLengths = np.array(sessionLengths)
+  data.keystrokesPressedPerSession = np.array(keystrokesPressedPerSession)
+  data.timeSpentPressingKeys = np.array(timeSpentPressingKeys)
+  data.websitesVisitedPerSession = np.array(websitesVisitedPerSession)
+  data.domainsVisitedPerSession = np.array(domainsVisitedPerSession)
+  data.websiteVisitLength = websiteVisitLength # TODO implement
+  data.websiteVisitLength_domain = websiteVisitLength_domain # TODO implement
+  data.wordLengths = np.array(wordLengths) # TODO implement
+  data.wordDurations = np.array(wordDurations) # TODO implement
+  data.bigramModel = bigramModel
+  data.user = userName
+
+  # TODO: finish
+  return data
+
+def saveSingleplots(data, outdir):
+  # unload all data
+  keystrokePLs = data.keystrokePLs
+  keystrokePLs_key = data.keystrokePLs_key
+  keystrokePLs_domain = data.keystrokePLs_domain
+  keystrokeFreqs = data.keystrokeFreqs
+  sessionLengths = data.sessionLengths
+  keystrokesPressedPerSession = data.keystrokesPressedPerSession
+  timeSpentPressingKeys = data.timeSpentPressingKeys
+  websitesVisitedPerSession = data.websitesVisitedPerSession
+  domainsVisitedPerSession = data.domainsVisitedPerSession
+  user = data.user
+
   keystrokePLs = keystrokePLs[keystrokePLs < 3]
   createHistogram(
-    'Keystroke Press Lengths for ' + userName,
-    'Seconds',
-    keystrokePLs, 100,
-    '%s/%s_keystrokePLs.pdf' % (args.outdir, userName)
+    'Keystroke Press Lengths for ' + user,
+    'Seconds', keystrokePLs,
+    '%s/%s_keystrokePLs.pdf' % (outdir, user)
   )
-  
+
   for (k,v) in keystrokePLs_key.iteritems():
-    v = np.array(v)
     v = v[v < 3]
-    keystrokePLs_key[k] = v
     createHistogram(
-      'Keystroke Press Lengths for %s, keycode: %d' % (userName, k),
-      'Seconds',
-      v, 100,
-      '%s/%s_keystrokePLs_key_%d.pdf' % (args.outdir, userName, k)
+      'Keystroke Press Lengths for %s, keycode: %d' % (user, k),
+      'Seconds', v,
+      '%s/%s_keystrokePLs_key_%d.pdf' % (outdir, user, k)
     )
 
   for (k,v) in keystrokePLs_domain.iteritems():
-    v = np.array(v)
     v = v[v < 3]
-    keystrokePLs_domain[k] = v
     createHistogram(
-      'Keystroke Press Lengths for %s, domain: %s' % (userName, k),
-      'Seconds',
-      v, 100,
-      '%s/%s_keystrokePLs_domain_%s.pdf' % (args.outdir, userName, k)
+      'Keystroke Press Lengths for %s, domain: %s' % (user, k),
+      'Seconds', v,
+      '%s/%s_keystrokePLs_domain_%s.pdf' % (outdir, user, k)
     )
 
-  sessionLengths = np.array(sessionLengths)
   createHistogram(
-    'Session Lengths for %s' % userName,
-    'Seconds',
-    sessionLengths, 20,
-    '%s/%s_sessionLengths.pdf' % (args.outdir, userName)
+    'Session Lengths for %s' % user,
+    'Seconds', sessionLengths,
+    '%s/%s_sessionLengths.pdf' % (outdir, user)
   )
 
-  keystrokesPressedPerSession = np.array(keystrokesPressedPerSession)
   createHistogram(
-    'Keystrokes/Session for %s' % userName,
-    'Number of Keystrokes',
-    keystrokesPressedPerSession, 20,
-    '%s/%s_keystrokesPerSession.pdf' % (args.outdir, userName)
+    'Keystrokes/Session for %s' % user,
+    'Number of Keystrokes', keystrokesPressedPerSession,
+    '%s/%s_keystrokesPerSession.pdf' % (outdir, user)
   )
 
-  timeSpentPressingKeys = np.array(timeSpentPressingKeys)
   createHistogram(
-    'Time spent Pressing Keys per Session for %s' % userName,
-    'Percentage',
-    timeSpentPressingKeys, 20,
-    '%s/%s_timeSpentPressingKeys.pdf' % (args.outdir, userName)
+    'Time spent Pressing Keys per Session for %s' % user,
+    'Percentage', timeSpentPressingKeys,
+    '%s/%s_timeSpentPressingKeys.pdf' % (outdir, user)
   )
 
-  websitesVisitedPerSession = np.array(websitesVisitedPerSession)
   createHistogram(
-    'Websites Visited per Session for %s' % userName,
-    'Number of Websites',
-    websitesVisitedPerSession, 20,
-    '%s/%s_websitesVisitedPerSession.pdf' % (args.outdir, userName)
+    'Websites Visited per Session for %s' % user,
+    'Number of Websites', websitesVisitedPerSession,
+    '%s/%s_websitesVisitedPerSession.pdf' % (outdir, user)
   )
 
-  domainsVisitedPerSession = np.array(domainsVisitedPerSession)
   createHistogram(
-    'Domains Visited per Session for %s' % userName,
-    'Number of Domains',
-    domainsVisitedPerSession, 20,
-    '%s/%s_domainsVisitedPerSession.pdf' % (args.outdir, userName)
+    'Domains Visited per Session for %s' % user,
+    'Number of Domains', domainsVisitedPerSession,
+    '%s/%s_domainsVisitedPerSession.pdf' % (outdir, user)
   )
 
-  wordLengths = np.array(wordLengths)
-  wordDurations = np.array(wordDurations)
+def visualizeBigramModel(data):
+  bigramModel = data.bigramModel
+  print('Bigram Model for user %s' % data.user)
+
+  # bigram model stuff
+  key2kc = KEYCODES
+  kc2key = dict((v,k) for k,v in key2kc.iteritems())
+
+  # pairs we want to visualize
+  allKeys = set(kc2key.iterkeys())
+  for (k,v) in bigramModel.iteritems():
+    print('  Key1( %-6s )' % kc2key[k])
+    for (m,n) in v.iteritems():
+      (fl, gap, ss) = zip(*n)
+      print('    Key2( %-6s ) count: %d' % (kc2key[m], len(n)))
+      print('      Full Length: meanPL: %f - stdevPL: %f'
+                    % (np.mean(fl), np.std(fl)))
+      print('      Gap        : meanPL: %f - stdevPL: %f'
+                    % (np.mean(gap), np.std(gap)))
+      print('      Start-start: meanPL: %f - stdevPL: %f'
+                    % (np.mean(ss), np.std(ss)))
+
+parser = argparse.ArgumentParser(description='Looks at AMT gathered data')
+parser.add_argument('outdir')
+parser.add_argument('infiles', type=argparse.FileType('r'), nargs='+')
+parser.add_argument('--noplots', action='store_true')
+
+if __name__ == '__main__':
+  args = parser.parse_args()
+  if args.outdir[-1] == '/': args.outdir = args.outdir[:-1]
+
+  users = []
+  data = []
+  for infile in infiles:
+    datum = collectData(infile)
+    data.append(datum)
+    if not args.noplots: saveSinglePlots(datum, args.outdir)
 
