@@ -34,22 +34,27 @@ def createHistogram(title, xlabel, data, filename):
 
 def createMultiHistograms(title, xlabel, fname, data, users):
   d = np.concatenate(data)
-  width = 2.0 * IQR(d) / (len(d) ** (1/3.0))
+  width = 3.0 * IQR(d) / (len(d) ** (1/3.0))
   if width == 0.0:
     bins = 20
   else:
-    bins = math.floor((max(d) - min(d)) / width * 1.1)
+    bins = math.ceil((max(d) - min(d)) / width * 1.1)
+  h, edges = np.histogram(d, bins=bins)
+  pts = []
+  for i in range(len(data)):
+    h, edges = np.histogram(data[i], bins=edges, normed=True)
+    pts.append(h)
   plt.figure()
   plt.title(title)
   plt.xlabel(xlabel)
-  plt.hist(data, bins=bins, label=users)
+  plt.plot(edges[:-1] - np.diff(edges) / 2.0, np.array(pts).T)
   plt.savefig(fname)
   plt.clf()
   plt.close()
 
 def collectData(infile):
   data = Object()
-  userName = os.path.split(args.infile.name)[1].split('.')[0]
+  userName = os.path.split(infile.name)[1].split('.')[0]
 
   # initialize all the container vars
   keystrokePLs = []
@@ -71,7 +76,7 @@ def collectData(infile):
   bigramModel = defaultdict(lambda: defaultdict(list))
 
   # go through the segmented data (this is just a lot of code)
-  stream = openJsonStream(args.infile)
+  stream = openJsonStream(infile)
   sessions = segmentJsonStream(stream)
 
   for session in sessions:
@@ -141,7 +146,7 @@ def collectData(infile):
   # TODO: finish
   return data
 
-def saveSingleplots(data, outdir):
+def saveSinglePlots(data, outdir):
   # unload all data
   keystrokePLs = data.keystrokePLs
   keystrokePLs_key = data.keystrokePLs_key
@@ -237,11 +242,32 @@ parser.add_argument('--noplots', action='store_true')
 if __name__ == '__main__':
   args = parser.parse_args()
   if args.outdir[-1] == '/': args.outdir = args.outdir[:-1]
+  key2kc = KEYCODES
+  kc2key = dict((v,k) for k,v in key2kc.iteritems())
 
   users = []
   data = []
-  for infile in infiles:
+  for infile in args.infiles:
     datum = collectData(infile)
     data.append(datum)
     if not args.noplots: saveSinglePlots(datum, args.outdir)
+
+  createMultiHistograms(
+     'Keystroke PLs', 'Press length', '%s/ALL_keystrokePLs.pdf' % args.outdir,
+     [d.keystrokePLs[d.keystrokePLs<3] for d in data], [d.user for d in data])
+  for i in range(230):
+    if all(i in d.keystrokePLs_key for d in data):
+      datum = [d.keystrokePLs_key[i] for d in data]
+      createMultiHistograms(
+        'Keystroke PLs (Key=%s)' % kc2key[i], 'Press length',
+        '%s/ALL_keystrokePLs_key_%d.pdf' % (args.outdir, i),
+        [d[d < 3] for d in datum], [d.user for d in data])
+
+  for x in data[0].keystrokePLs_domain.iterkeys():
+    if all(x in d.keystrokePLs_domain for d in data):
+      datum = [d.keystrokePLs_domain[x] for d in data]
+      createMultiHistograms(
+        'Keystroke PLs (Domain=%s)' % x, 'Press length',
+        '%s/ALL_keystrokePLs_key_%s.pdf' % (args.outdir, x),
+        [d[d < 3] for d in datum], [d.user for d in data])
 
