@@ -5,6 +5,7 @@ from keycodes import KEYCODES
 import argparse
 import math
 from collections import defaultdict, Counter
+import itertools
 from urlparse import urlparse
 import os.path
 
@@ -12,6 +13,9 @@ import numpy as np
 from scipy.stats import scoreatpercentile
 import matplotlib
 import matplotlib.pylab as plt
+
+key2kc = KEYCODES
+kc2key = dict((v,k) for k,v in key2kc.iteritems())
 
 def IQR(data):
   return scoreatpercentile(data,75) - scoreatpercentile(data,25)
@@ -146,6 +150,53 @@ def collectData(infile):
   # TODO: finish
   return data
 
+def visualizeBigramModel(data, outdir):
+  bigramModel = data.bigramModel
+  keycodes = list(KEYCODES.values()).sorted()
+  keyToIndex = dict((v,k) for (k,v) in enumerate(keycodes))
+  fullLength = np.zeros([len(keycodes)] * 2) + float('-Inf')
+  gap        = np.zeros([len(keycodes)] * 2) + float('-Inf')
+  startStart = np.zeros([len(keycodes)] * 2) + float('-Inf')
+  for (k,v) in bigramModel.iteritems():
+    for (m,n) in v.iteritems():
+      (fl, g, ss) = zip(*n)
+      if len(fl) > 0: fullLength[keyToIndex[k],keyToIndex[m]] = np.mean(fl)
+      if len(g ) > 0: gap[keyToIndex[k],keyToIndex[m]] = np.mean(g)
+      if len(ss) > 0: startStart[keyToIndex[k],keyToIndex[m]] = np.mean(ss)
+
+  plt.figure()
+  plt.imshow(fullLength)
+  plt.savefig('%s/%s_bigram_fullLength.pdf' % (outdir, data.user))
+  plt.close()
+
+  plt.figure()
+  plt.imshow(gap)
+  plt.savefig('%s/%s_bigram_gap.pdf' % (outdir, data.user))
+  plt.close()
+
+  plt.figure()
+  plt.imshow(ss)
+  plt.savefig('%s/%s_bigram_start-start.pdf' % (outdir, data.user))
+  plt.close()
+
+def visualizeBigramModelText(data):
+  bigramModel = data.bigramModel
+  print('Bigram Model for user %s' % data.user)
+
+  # pairs we want to visualize
+  allKeys = set(kc2key.iterkeys())
+  for (k,v) in bigramModel.iteritems():
+    print('  Key1( %-6s )' % kc2key[k])
+    for (m,n) in v.iteritems():
+      (fl, gap, ss) = zip(*n)
+      print('    Key2( %-6s ) count: %d' % (kc2key[m], len(n)))
+      print('      Full Length: meanPL: %f - stdevPL: %f'
+                    % (np.mean(fl), np.std(fl)))
+      print('      Gap        : meanPL: %f - stdevPL: %f'
+                    % (np.mean(gap), np.std(gap)))
+      print('      Start-start: meanPL: %f - stdevPL: %f'
+                    % (np.mean(ss), np.std(ss)))
+
 def saveSinglePlots(data, outdir):
   # unload all data
   keystrokePLs = data.keystrokePLs
@@ -212,27 +263,7 @@ def saveSinglePlots(data, outdir):
     '%s/%s_domainsVisitedPerSession.pdf' % (outdir, user)
   )
 
-def visualizeBigramModel(data):
-  bigramModel = data.bigramModel
-  print('Bigram Model for user %s' % data.user)
-
-  # bigram model stuff
-  key2kc = KEYCODES
-  kc2key = dict((v,k) for k,v in key2kc.iteritems())
-
-  # pairs we want to visualize
-  allKeys = set(kc2key.iterkeys())
-  for (k,v) in bigramModel.iteritems():
-    print('  Key1( %-6s )' % kc2key[k])
-    for (m,n) in v.iteritems():
-      (fl, gap, ss) = zip(*n)
-      print('    Key2( %-6s ) count: %d' % (kc2key[m], len(n)))
-      print('      Full Length: meanPL: %f - stdevPL: %f'
-                    % (np.mean(fl), np.std(fl)))
-      print('      Gap        : meanPL: %f - stdevPL: %f'
-                    % (np.mean(gap), np.std(gap)))
-      print('      Start-start: meanPL: %f - stdevPL: %f'
-                    % (np.mean(ss), np.std(ss)))
+  visualizeBigramModel(data, outdir)
 
 parser = argparse.ArgumentParser(description='Looks at AMT gathered data')
 parser.add_argument('outdir')
@@ -242,8 +273,6 @@ parser.add_argument('--noplots', action='store_true')
 if __name__ == '__main__':
   args = parser.parse_args()
   if args.outdir[-1] == '/': args.outdir = args.outdir[:-1]
-  key2kc = KEYCODES
-  kc2key = dict((v,k) for k,v in key2kc.iteritems())
 
   users = []
   data = []
