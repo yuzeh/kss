@@ -152,30 +152,41 @@ def collectData(infile):
 
 def visualizeBigramModel(data, outdir):
   bigramModel = data.bigramModel
-  keycodes = list(KEYCODES.values()).sorted()
+  keycodes = sorted(list(KEYCODES.values()))
   keyToIndex = dict((v,k) for (k,v) in enumerate(keycodes))
-  fullLength = np.zeros([len(keycodes)] * 2) + float('-Inf')
-  gap        = np.zeros([len(keycodes)] * 2) + float('-Inf')
-  startStart = np.zeros([len(keycodes)] * 2) + float('-Inf')
+  fullLength = np.zeros([len(keycodes)] * 2)
+  gap        = np.zeros([len(keycodes)] * 2)
+  startStart = np.zeros([len(keycodes)] * 2)
   for (k,v) in bigramModel.iteritems():
     for (m,n) in v.iteritems():
       (fl, g, ss) = zip(*n)
       if len(fl) > 0: fullLength[keyToIndex[k],keyToIndex[m]] = np.mean(fl)
       if len(g ) > 0: gap[keyToIndex[k],keyToIndex[m]] = np.mean(g)
       if len(ss) > 0: startStart[keyToIndex[k],keyToIndex[m]] = np.mean(ss)
+    # normalize!
+    if np.sum(fullLength[keyToIndex[k]]) > 0:
+      fullLength[keyToIndex[k]] /= np.sum(fullLength[keyToIndex[k]])
+    if np.sum(gap[keyToIndex[k]]) > 0:
+      gap[keyToIndex[k]] /= np.sum(gap[keyToIndex[k]])
+    if np.sum(startStart[keyToIndex[k]]) > 0:
+      startStart[keyToIndex[k]] /= np.sum(startStart[keyToIndex[k]])
+
+  fullLength = np.array(fullLength)
+  gap = np.array(gap)
+  startStart = np.array(startStart)
 
   plt.figure()
-  plt.imshow(fullLength)
+  plt.imshow(fullLength, interpolation='none')
   plt.savefig('%s/%s_bigram_fullLength.pdf' % (outdir, data.user))
   plt.close()
 
   plt.figure()
-  plt.imshow(gap)
+  plt.imshow(gap, interpolation='none')
   plt.savefig('%s/%s_bigram_gap.pdf' % (outdir, data.user))
   plt.close()
 
   plt.figure()
-  plt.imshow(ss)
+  plt.imshow(startStart, interpolation='none')
   plt.savefig('%s/%s_bigram_start-start.pdf' % (outdir, data.user))
   plt.close()
 
