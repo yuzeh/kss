@@ -11,3 +11,4 @@ server/yuze.no-ip.org.crt
 mturk/settings.*
 mturk/data/*
 mturk/plots/*
+mturk/analyze.sh

@@ -36,14 +36,18 @@ def createHistogram(title, xlabel, data, filename):
   plt.clf()
   plt.close()
 
-def createMultiHistograms(title, xlabel, fname, data, users):
-  d = np.concatenate(data)
+def findCommonEdges(*args):
+  d = np.concatenate(args)
   width = 3.0 * IQR(d) / (len(d) ** (1/3.0))
   if width == 0.0:
     bins = 20
   else:
     bins = math.ceil((max(d) - min(d)) / width * 1.1)
   h, edges = np.histogram(d, bins=bins)
+  return edges
+
+def createMultiHistograms(title, xlabel, fname, data, users):
+  edges = findCommonEdges(*data)
   pts = []
   for i in range(len(data)):
     h, edges = np.histogram(data[i], bins=edges, normed=True)
@@ -54,6 +58,35 @@ def createMultiHistograms(title, xlabel, fname, data, users):
   plt.plot(edges[:-1] - np.diff(edges) / 2.0, np.array(pts).T)
   plt.savefig(fname)
   plt.clf()
+  plt.close()
+
+def compareTwoUsers(data1, data2, outdir):
+  """Compares data for two users. Currently plots difference in peaks for
+  the users on presslengths for different keycodes."""
+  def computePeakDifference(d1,d2):
+    edges = findCommonEdges(d1, d2)
+    h1, e = np.histogram(d1, bins=edges, normed=True)
+    h2, e = np.histogram(d2, bins=edges, normed=True)
+    a1, a2 = np.argmax(h1), np.argmax(h2)
+    diff = (edges[a1] + edges[a1+1] - edges[a2] - edges[a2+1]) / 2.0
+    return diff
+
+  commonKeys = set(data1.keystrokePLs_key.keys()) \
+             & set(data2.keystrokePLs_key.keys())
+  peakDiffs = []
+  for key in commonKeys:
+    dat1 = data1.keystrokePLs_key[key]
+    dat2 = data2.keystrokePLs_key[key]
+    peakDiffs.append(computePeakDifference(dat1, dat2))
+  peakDiffs.append(computePeakDifference(data1.keystrokePLs,
+                                         data2.keystrokePLs))
+  edges = findCommonEdges(peakDiffs)
+  plt.figure()
+  plt.hist(peakDiffs, bins=edges)
+  plt.title('Peak Differences for Keystroke PL for %s and %s'
+              % (data1.user, data2.user))
+  plt.xlabel('Time (seconds)')
+  plt.savefig('%s/%s_%s_kPLpeakDiff.pdf' % (outdir, data1.user, data2.user))
   plt.close()
 
 def collectData(infile):
@@ -71,6 +104,7 @@ def collectData(infile):
   timeSpentPressingKeys = []
   websitesVisitedPerSession = []
   domainsVisitedPerSession = []
+  domainVisits = Counter()
   websiteVisitLength = [] # can't currently get this one
   websiteVisitLength_domain = defaultdict(list) # same here
   wordLengths = [] # TODO implement
@@ -95,7 +129,8 @@ def collectData(infile):
       else:
         domain = urlparse(page.url).netloc
       websites.add(page.url)
-      domains.add(page.url)
+      domains.add(domain)
+      domainVisits.update([domain])
       keystrokesPressed += len(page.keystrokes)
 
       page.keystrokes.sort(key=lambda x: x.timestamp)
@@ -140,6 +175,7 @@ def collectData(infile):
   data.timeSpentPressingKeys = np.array(timeSpentPressingKeys)
   data.websitesVisitedPerSession = np.array(websitesVisitedPerSession)
   data.domainsVisitedPerSession = np.array(domainsVisitedPerSession)
+  data.domainVisits = domainVisits
   data.websiteVisitLength = websiteVisitLength # TODO implement
   data.websiteVisitLength_domain = websiteVisitLength_domain # TODO implement
   data.wordLengths = np.array(wordLengths) # TODO implement
@@ -219,6 +255,7 @@ def saveSinglePlots(data, outdir):
   timeSpentPressingKeys = data.timeSpentPressingKeys
   websitesVisitedPerSession = data.websitesVisitedPerSession
   domainsVisitedPerSession = data.domainsVisitedPerSession
+  domainVisits = data.domainVisits
   user = data.user
 
   keystrokePLs = keystrokePLs[keystrokePLs < 3]
@@ -274,6 +311,18 @@ def saveSinglePlots(data, outdir):
     '%s/%s_domainsVisitedPerSession.pdf' % (outdir, user)
   )
 
+  # create bar chart with domains on the x-axis
+  N = len(domainVisits.keys())
+  ind = np.arange(N)
+  width = 0.8
+  domains, counts = zip(*domainVisits.iteritems())
+  plt.bar(ind, counts, width)
+  plt.title('Domains visited by %s' % user)
+  plt.xticks(ind + width / 2, domains, rotation='vertical')
+  plt.savefig('%s/%s_domainVisits.pdf' % (outdir, user))
+  plt.gcf().subplots_adjust(bottom=1.0)
+  plt.close()
+
   visualizeBigramModel(data, outdir)
 
 parser = argparse.ArgumentParser(description='Looks at AMT gathered data')
@@ -295,6 +344,7 @@ if __name__ == '__main__':
   createMultiHistograms(
      'Keystroke PLs', 'Press length', '%s/ALL_keystrokePLs.pdf' % args.outdir,
      [d.keystrokePLs[d.keystrokePLs<3] for d in data], [d.user for d in data])
+
   for i in range(230):
     if all(i in d.keystrokePLs_key for d in data):
       datum = [d.keystrokePLs_key[i] for d in data]
@@ -310,4 +360,6 @@ if __name__ == '__main__':
         'Keystroke PLs (Domain=%s)' % x, 'Press length',
         '%s/ALL_keystrokePLs_key_%s.pdf' % (args.outdir, x),
         [d[d < 3] for d in datum], [d.user for d in data])
+
+  if len(data) > 1: compareTwoUsers(data[0], data[1], args.outdir)
 
