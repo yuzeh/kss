@@ -319,8 +319,8 @@ def saveSinglePlots(data, outdir):
   plt.bar(ind, counts, width)
   plt.title('Domains visited by %s' % user)
   plt.xticks(ind + width / 2, domains, rotation='vertical')
+  plt.gcf().subplots_adjust(bottom=0.5)
   plt.savefig('%s/%s_domainVisits.pdf' % (outdir, user))
-  plt.gcf().subplots_adjust(bottom=1.0)
   plt.close()
 
   visualizeBigramModel(data, outdir)
