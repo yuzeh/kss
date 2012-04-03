@@ -13,9 +13,12 @@ import numpy as np
 from scipy.stats import scoreatpercentile
 import matplotlib
 import matplotlib.pylab as plt
+from matplotlib.colors import LogNorm
 
 key2kc = KEYCODES
 kc2key = dict((v,k) for k,v in key2kc.iteritems())
+
+def logTransform(x): return math.log1p(x * (math.e - 1))
 
 def IQR(data):
   return scoreatpercentile(data,75) - scoreatpercentile(data,25)
@@ -187,44 +190,53 @@ def collectData(infile):
   return data
 
 def visualizeBigramModel(data, outdir):
+  def keyBigramImshow(data, fname):
+    plt.figure()
+    plt.imshow(data, interpolation='none', norm=LogNorm(vmin=0.01, vmax=1))
+    plt.colorbar()
+    plt.xlabel('Key #2'); plt.ylabel('Key #1')
+    plt.savefig(fname)
+    plt.close()
+
   bigramModel = data.bigramModel
   keycodes = sorted(list(KEYCODES.values()))
   keyToIndex = dict((v,k) for (k,v) in enumerate(keycodes))
-  fullLength = np.zeros([len(keycodes)] * 2)
-  gap        = np.zeros([len(keycodes)] * 2)
-  startStart = np.zeros([len(keycodes)] * 2)
+  fullLength = np.zeros([len(keycodes)] * 2) - 1
+  gap        = np.zeros([len(keycodes)] * 2) - 6
+  startStart = np.zeros([len(keycodes)] * 2) - 1
   for (k,v) in bigramModel.iteritems():
     for (m,n) in v.iteritems():
       (fl, g, ss) = zip(*n)
       if len(fl) > 0: fullLength[keyToIndex[k],keyToIndex[m]] = np.mean(fl)
       if len(g ) > 0: gap[keyToIndex[k],keyToIndex[m]] = np.mean(g)
       if len(ss) > 0: startStart[keyToIndex[k],keyToIndex[m]] = np.mean(ss)
-    # normalize!
-    if np.sum(fullLength[keyToIndex[k]]) > 0:
-      fullLength[keyToIndex[k]] /= np.sum(fullLength[keyToIndex[k]])
-    if np.sum(gap[keyToIndex[k]]) > 0:
-      gap[keyToIndex[k]] /= np.sum(gap[keyToIndex[k]])
-    if np.sum(startStart[keyToIndex[k]]) > 0:
-      startStart[keyToIndex[k]] /= np.sum(startStart[keyToIndex[k]])
 
-  fullLength = np.array(fullLength)
-  gap = np.array(gap)
-  startStart = np.array(startStart)
+  keyBigramImshow(fullLength, '%s/%s_bigram_fullLength.pdf'
+                                        % (outdir, data.user))
+  keyBigramImshow(gap, '%s/%s_bigram_gap.pdf'
+                                        % (outdir, data.user))
+  keyBigramImshow(startStart, '%s/%s_bigram_start-start.pdf'
+                                        % (outdir, data.user))
+  #plt.figure()
+  #plt.imshow(fullLength, interpolation='none', vmin=-1, vmax=6)
+  #plt.colorbar()
+  #plt.xlabel('Key #2'); plt.ylabel('Key #1')
+  #plt.savefig('%s/%s_bigram_fullLength.pdf' % (outdir, data.user))
+  #plt.close()
 
-  plt.figure()
-  plt.imshow(fullLength, interpolation='none')
-  plt.savefig('%s/%s_bigram_fullLength.pdf' % (outdir, data.user))
-  plt.close()
+  #plt.figure()
+  #plt.imshow(gap, interpolation='none', vmin=-4, vmax=3)
+  #plt.colorbar()
+  #plt.xlabel('Key #2'); plt.ylabel('Key #1')
+  #plt.savefig('%s/%s_bigram_gap.pdf' % (outdir, data.user))
+  #plt.close()
 
-  plt.figure()
-  plt.imshow(gap, interpolation='none')
-  plt.savefig('%s/%s_bigram_gap.pdf' % (outdir, data.user))
-  plt.close()
-
-  plt.figure()
-  plt.imshow(startStart, interpolation='none')
-  plt.savefig('%s/%s_bigram_start-start.pdf' % (outdir, data.user))
-  plt.close()
+  #plt.figure()
+  #plt.imshow(startStart, interpolation='none', vmin=-1, vmax=6)
+  #plt.colorbar()
+  #plt.xlabel('Key #2'); plt.ylabel('Key #1')
+  #plt.savefig('%s/%s_bigram_start-start.pdf' % (outdir, data.user))
+  #plt.close()
 
 def visualizeBigramModelText(data):
   bigramModel = data.bigramModel
