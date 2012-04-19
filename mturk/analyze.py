@@ -12,13 +12,33 @@ import os.path
 import numpy as np
 from scipy.stats import scoreatpercentile
 import matplotlib
+matplotlib.use('pdf')
+import matplotlib.cm as cm
 import matplotlib.pylab as plt
 from matplotlib.colors import LogNorm
+
+NUMBER_OF_KEYCODES = 230
 
 key2kc = KEYCODES
 kc2key = dict((v,k) for k,v in key2kc.iteritems())
 
-def logTransform(x): return math.log1p(x * (math.e - 1))
+def cmap_xmap(function,cmap):
+  """ Applies function, on the indices of colormap cmap. Beware, function
+  should map the [0, 1] segment to itself, or you are in for surprises.
+
+  See also cmap_xmap.
+  """
+  cdict = cmap._segmentdata
+  function_to_map = lambda x : (function(x[0]), x[1], x[2])
+  for key in ('red','green','blue'):
+    cdict[key] = map(function_to_map, cdict[key])
+    cdict[key].sort()
+    #assert (cdict[key][0]<0 or cdict[key][-1]>1), "Resulting indices extend out of the [0, 1] segment."
+
+  return matplotlib.colors.LinearSegmentedColormap('colormap',cdict,1024)
+
+#def logTransform(x): return math.log1p(x * (math.e - 1))
+def logTransform(x): return math.log1p(x / 30 * math.e) - 1
 
 def IQR(data):
   return scoreatpercentile(data,75) - scoreatpercentile(data,25)
@@ -189,54 +209,63 @@ def collectData(infile):
   # TODO: finish
   return data
 
-def visualizeBigramModel(data, outdir):
-  def keyBigramImshow(data, fname):
+def compileBigramModel(data):
+  COUNT_CUTOFF = 5
+  TIME_CUTOFF = 5
+  bigramModel = data.bigramModel
+  keycodes = sorted(list(KEYCODES.values()))
+  keyToIndex = dict((v,k) for (k,v) in enumerate(keycodes))
+  fullLength = np.zeros([len(keycodes)] * 2) + float('-Inf')
+  gap        = np.zeros([len(keycodes)] * 2) + float('-Inf')
+  startStart = np.zeros([len(keycodes)] * 2) + float('-Inf')
+  for (k,v) in bigramModel.iteritems():
+    for (m,n) in v.iteritems():
+      (fl, g, ss) = zip(*n)
+      if len(fl) >= COUNT_CUTOFF and abs(np.mean(fl)) < TIME_CUTOFF:
+        fullLength[keyToIndex[k],keyToIndex[m]] = np.mean(fl)
+      if len(g ) >= COUNT_CUTOFF and abs(np.mean(g )) < TIME_CUTOFF:
+        gap[keyToIndex[k],keyToIndex[m]] = np.mean(g)
+      if len(ss) >= COUNT_CUTOFF and abs(np.mean(ss)) < TIME_CUTOFF:
+        startStart[keyToIndex[k],keyToIndex[m]] = np.mean(ss)
+
+  bigram = Object()
+  bigram.fullLength  = fullLength
+  bigram.gap         = gap
+  bigram.startStart  = startStart
+  return bigram
+
+def getBigramMaxesAndMins(bigrams):
+  def ni(x): return x[x != float('-Inf')]
+
+  maxes = Object()
+  maxes.fullLength  = np.max([np.max(ni(b.fullLength)) for b in bigrams])
+  maxes.gap         = np.max([np.max(ni(b.gap)) for b in bigrams])
+  maxes.startStart  = np.max([np.max(ni(b.startStart)) for b in bigrams])
+
+  mins  = Object()
+  mins.fullLength  = np.min([np.min(ni(b.fullLength)) for b in bigrams])
+  mins.gap         = np.min([np.min(ni(b.gap)) for b in bigrams])
+  mins.startStart  = np.min([np.min(ni(b.startStart)) for b in bigrams])
+
+  return (maxes, mins)
+
+def visualizeBigramModel(data, outdir, maxes, mins):
+  def keyBigramImshow(data, fname, max, min):
     plt.figure()
-    plt.imshow(data, interpolation='none', norm=LogNorm(vmin=0.01, vmax=1))
+    plt.imshow(data, interpolation='none', vmin=min, vmax=max)
     plt.colorbar()
     plt.xlabel('Key #2'); plt.ylabel('Key #1')
     plt.savefig(fname)
     plt.close()
 
-  bigramModel = data.bigramModel
-  keycodes = sorted(list(KEYCODES.values()))
-  keyToIndex = dict((v,k) for (k,v) in enumerate(keycodes))
-  fullLength = np.zeros([len(keycodes)] * 2) - 1
-  gap        = np.zeros([len(keycodes)] * 2) - 6
-  startStart = np.zeros([len(keycodes)] * 2) - 1
-  for (k,v) in bigramModel.iteritems():
-    for (m,n) in v.iteritems():
-      (fl, g, ss) = zip(*n)
-      if len(fl) > 0: fullLength[keyToIndex[k],keyToIndex[m]] = np.mean(fl)
-      if len(g ) > 0: gap[keyToIndex[k],keyToIndex[m]] = np.mean(g)
-      if len(ss) > 0: startStart[keyToIndex[k],keyToIndex[m]] = np.mean(ss)
+  b = compileBigramModel(data)
 
-  keyBigramImshow(fullLength, '%s/%s_bigram_fullLength.pdf'
-                                        % (outdir, data.user))
-  keyBigramImshow(gap, '%s/%s_bigram_gap.pdf'
-                                        % (outdir, data.user))
-  keyBigramImshow(startStart, '%s/%s_bigram_start-start.pdf'
-                                        % (outdir, data.user))
-  #plt.figure()
-  #plt.imshow(fullLength, interpolation='none', vmin=-1, vmax=6)
-  #plt.colorbar()
-  #plt.xlabel('Key #2'); plt.ylabel('Key #1')
-  #plt.savefig('%s/%s_bigram_fullLength.pdf' % (outdir, data.user))
-  #plt.close()
-
-  #plt.figure()
-  #plt.imshow(gap, interpolation='none', vmin=-4, vmax=3)
-  #plt.colorbar()
-  #plt.xlabel('Key #2'); plt.ylabel('Key #1')
-  #plt.savefig('%s/%s_bigram_gap.pdf' % (outdir, data.user))
-  #plt.close()
-
-  #plt.figure()
-  #plt.imshow(startStart, interpolation='none', vmin=-1, vmax=6)
-  #plt.colorbar()
-  #plt.xlabel('Key #2'); plt.ylabel('Key #1')
-  #plt.savefig('%s/%s_bigram_start-start.pdf' % (outdir, data.user))
-  #plt.close()
+  keyBigramImshow(b.fullLength, '%s/%s_bigram_fullLength.pdf'
+      % (outdir, data.user), maxes.fullLength, mins.fullLength)
+  keyBigramImshow(b.gap, '%s/%s_bigram_gap.pdf'
+      % (outdir, data.user), maxes.gap, mins.gap)
+  keyBigramImshow(b.startStart, '%s/%s_bigram_start-start.pdf'
+      % (outdir, data.user), maxes.startStart, mins.startStart)
 
 def visualizeBigramModelText(data):
   bigramModel = data.bigramModel
@@ -256,7 +285,7 @@ def visualizeBigramModelText(data):
       print('      Start-start: meanPL: %f - stdevPL: %f'
                     % (np.mean(ss), np.std(ss)))
 
-def saveSinglePlots(data, outdir):
+def saveSinglePlots(data, outdir, maxes, mins):
   # unload all data
   keystrokePLs = data.keystrokePLs
   keystrokePLs_key = data.keystrokePLs_key
@@ -335,7 +364,7 @@ def saveSinglePlots(data, outdir):
   plt.savefig('%s/%s_domainVisits.pdf' % (outdir, user))
   plt.close()
 
-  visualizeBigramModel(data, outdir)
+  visualizeBigramModel(data, outdir, maxes, mins)
 
 parser = argparse.ArgumentParser(description='Looks at AMT gathered data')
 parser.add_argument('outdir')
@@ -343,6 +372,10 @@ parser.add_argument('infiles', type=argparse.FileType('r'), nargs='+')
 parser.add_argument('--noplots', action='store_true')
 
 if __name__ == '__main__':
+  import time
+
+  start_time = time.time()
+
   args = parser.parse_args()
   if args.outdir[-1] == '/': args.outdir = args.outdir[:-1]
 
@@ -351,13 +384,21 @@ if __name__ == '__main__':
   for infile in args.infiles:
     datum = collectData(infile)
     data.append(datum)
-    if not args.noplots: saveSinglePlots(datum, args.outdir)
+
+  print('Data loaded and compiled in %.3f s' % (time.time() - start_time))
+
+  # Process bigram stuff
+  bigrams = [compileBigramModel(d) for d in data]
+  (maxes, mins) = getBigramMaxesAndMins(bigrams)
+
+  if not args.noplots:
+    for d in data: saveSinglePlots(d, args.outdir, maxes, mins)
 
   createMultiHistograms(
      'Keystroke PLs', 'Press length', '%s/ALL_keystrokePLs.pdf' % args.outdir,
      [d.keystrokePLs[d.keystrokePLs<3] for d in data], [d.user for d in data])
 
-  for i in range(230):
+  for i in range(NUMBER_OF_KEYCODES):
     if all(i in d.keystrokePLs_key for d in data):
       datum = [d.keystrokePLs_key[i] for d in data]
       createMultiHistograms(
@@ -374,4 +415,6 @@ if __name__ == '__main__':
         [d[d < 3] for d in datum], [d.user for d in data])
 
   if len(data) > 1: compareTwoUsers(data[0], data[1], args.outdir)
+
+  print('Process completed in %.3f s' % (time.time() - start_time))
 
